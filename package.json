@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+ "scripts": {
+  "start": "node index.js",
+  "test": "npx playwright test",
+  "test:api": "node run-tests.js" 
+}
+
+,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alage3126/country-api.git"
@@ -20,5 +24,10 @@
   "dependencies": {
     "express": "^5.1.0",
     "oracledb": "^6.9.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2",
+    "concurrently": "^9.2.0",
+    "wait-on": "^8.0.4"
   }
 }

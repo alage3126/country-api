@@ -5,6 +5,11 @@ const app = express();
 const PORT = 3000;
 app.use(express.json()); // Para ler JSON do body
 
+// exemplo de rota simples
+app.get('/test', (req, res) => {
+  res.send('API está rodando!');
+});
+
 const dbConfig = {
   user: "C##COUNTRY",
   password: "root",
@@ -179,7 +184,9 @@ app.patch('/countries/:id', async (req, res) => {
   });
 
 
+// inicializa o servidor
 app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
-  });
+  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log("✅ Servidor pronto! Pode rodar os testes agora.");
+});
 
