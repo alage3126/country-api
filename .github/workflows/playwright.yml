@@ -1,26 +1,32 @@
-name: Playwright Tests
+name: Playwright API Tests
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      # Pega o código do repositório
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 20
+      # Configura o Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
 
-    - name: Install dependencies
-      run: npm install
+      # Instala dependências
+      - name: Install dependencies
+        run: npm install
 
-    - name: Run Playwright tests
-      run: npm run test:api
+      # Executa os testes (index.js já liga o servidor e chama Playwright)
+      - name: Run API tests
+        run: npm test
