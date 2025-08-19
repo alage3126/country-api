@@ -1,24 +1,25 @@
-name: Playwright Tests
+name: Playwright API Tests
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
-  test:
+  api-tests:
     runs-on: ubuntu-latest
+
     services:
       oracle:
-        image: gvenzl/oracle-xe:21-slim
+        image: oracleinanutshell/oracle-xe-11g
         ports:
           - 1521:1521
         options: >-
-          --health-cmd "echo 'SELECT 1 FROM dual;' | sqlplus system/root@//localhost:1521/XEPDB1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+          --health-cmd="echo 'SELECT 1 FROM DUAL;' | sqlplus -s SYSTEM/oracle"
+          --health-interval=30s
+          --health-timeout=10s
+          --health-retries=10
 
     steps:
       - uses: actions/checkout@v3
@@ -32,12 +33,19 @@ jobs:
         run: npm install
 
       - name: Wait for Oracle to be ready
-        run: sleep 60
+        run: |
+          echo "Aguardando Oracle..."
+          for i in {1..20}; do
+            nc -z localhost 1521 && break
+            echo "Esperando..."
+            sleep 15
+          done
 
-      - name: Run API server
-        run: node index.js &
-        env:
-          ORACLE_PASSWORD: root
+      - name: Start server
+        run: |
+          node index.js &
+          echo "Servidor iniciado"
+          sleep 20 # garante que o servidor esteja pronto
 
       - name: Run Playwright tests
         run: npx playwright test
