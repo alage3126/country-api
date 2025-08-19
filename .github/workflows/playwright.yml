@@ -1,32 +1,43 @@
-name: Playwright API Tests
+name: Playwright Tests
 
 on:
   push:
     branches:
       - main
   pull_request:
-    branches:
-      - main
 
 jobs:
   test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
+    services:
+      oracle:
+        image: gvenzl/oracle-xe:21-slim
+        ports:
+          - 1521:1521
+        options: >-
+          --health-cmd "echo 'SELECT 1 FROM dual;' | sqlplus system/root@//localhost:1521/XEPDB1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
 
     steps:
-      # Pega o código do repositório
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      # Configura o Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: 20
 
-      # Instala dependências
       - name: Install dependencies
         run: npm install
 
-      # Executa os testes (index.js já liga o servidor e chama Playwright)
-      - name: Run API tests
-        run: npm test
+      - name: Wait for Oracle to be ready
+        run: sleep 60
+
+      - name: Run API server
+        run: node index.js &
+        env:
+          ORACLE_PASSWORD: root
+
+      - name: Run Playwright tests
+        run: npx playwright test
