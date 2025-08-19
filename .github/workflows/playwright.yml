@@ -12,17 +12,20 @@ jobs:
 
     services:
       oracle:
-        image: oracleinanutshell/oracle-xe-11g
+        image: gvenzl/oracle-xe:23-slim
         ports:
           - 1521:1521
+        env:
+          ORACLE_PASSWORD: root
         options: >-
-          --health-cmd="echo 'SELECT 1 FROM DUAL;' | sqlplus -s SYSTEM/oracle"
-          --health-interval=30s
-          --health-timeout=10s
-          --health-retries=10
+          --health-cmd="echo 'SELECT 1 FROM DUAL;' | sqlplus -s SYSTEM/root@XE"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=30
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -32,20 +35,22 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Wait for Oracle to be ready
+      - name: Wait for Oracle DB to be ready
         run: |
-          echo "Aguardando Oracle..."
-          for i in {1..20}; do
-            nc -z localhost 1521 && break
-            echo "Esperando..."
-            sleep 15
+          echo "Esperando Oracle iniciar..."
+          for i in {1..30}; do
+            echo "Tentativa $i"
+            if echo "SELECT 1 FROM DUAL;" | sqlplus -s SYSTEM/root@//localhost:1521/XE; then
+              echo "Oracle está pronto!"
+              break
+            fi
+            sleep 10
           done
 
-      - name: Start server
+      - name: Run API + Playwright tests
         run: |
           node index.js &
-          echo "Servidor iniciado"
-          sleep 20 # garante que o servidor esteja pronto
-
-      - name: Run Playwright tests
-        run: npx playwright test
+          SERVER_PID=$!
+          sleep 10 # tempo para o servidor subir
+          npx playwright test
+          kill $SERVER_PID
